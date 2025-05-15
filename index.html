@@ -1,40 +1,73 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>예매 버튼 리스트</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: #f9f9f9;
-      padding: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #button-container {
+      width: 100%;
+      max-width: 600px;
+    }
+
     .ticket-card {
-      background-color: #ffffff;
+      background-color: #fff;
       border: 1px solid #ddd;
       border-radius: 12px;
-      padding: 16px 20px;
+      padding: 16px;
       margin-bottom: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       transition: transform 0.2s;
     }
+
     .ticket-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
     .ticket-card a {
       text-decoration: none;
       color: #333;
       display: block;
     }
+
     .match-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
     }
+
     .match-info {
       font-size: 14px;
-      color: #555;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 480px) {
+      .match-title {
+        font-size: 15px;
+      }
+      .match-info {
+        font-size: 13px;
+      }
+      body {
+        padding: 12px;
+      }
     }
   </style>
 </head>
@@ -73,14 +106,16 @@
         schedules.forEach(schedule => {
           const { display, param } = formatDateTime(schedule.scheduleDate);
           const url = `https://www.ticketlink.co.kr/reserve/product/${schedule.productId}?productDate=${param}&scheduleId=${schedule.scheduleId}`;
-
           const card = document.createElement('div');
           card.className = 'ticket-card';
 
           card.innerHTML = `
             <a href="${url}" target="_blank">
               <div class="match-title">${schedule.homeTeam.teamName} vs ${schedule.awayTeam.teamName}</div>
-              <div class="match-info">${display} · ${schedule.venueName.trim()}</div>
+              <div class="match-info">
+                ${display}<br />
+                ${schedule.venueName.trim()}
+              </div>
             </a>
           `;
 
