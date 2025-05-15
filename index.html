@@ -103,7 +103,20 @@
           return;
         }
 
-        schedules.forEach(schedule => {
+        // 오늘 날짜의 00:00 기준 시간 생성
+        const todayMidnight = new Date();
+        todayMidnight.setHours(0, 0, 0, 0);
+        const todayTime = todayMidnight.getTime();
+
+        // 오늘 이후 경기만 필터링
+        const futureSchedules = schedules.filter(s => s.scheduleDate >= todayTime);
+
+        if (futureSchedules.length === 0) {
+          container.textContent = '예정된 경기가 없습니다.';
+          return;
+        }
+
+        futureSchedules.forEach(schedule => {
           const { display, param } = formatDateTime(schedule.scheduleDate);
           const url = `https://www.ticketlink.co.kr/reserve/product/${schedule.productId}?productDate=${param}&scheduleId=${schedule.scheduleId}`;
           const card = document.createElement('div');
