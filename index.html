@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>예매 버튼 리스트</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    .ticket-card {
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+    .ticket-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .ticket-card a {
+      text-decoration: none;
+      color: #333;
+      display: block;
+    }
+    .match-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .match-info {
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>예매 가능한 경기</h1>
+  <div id="button-container">불러오는 중...</div>
+
+  <script>
+    function formatDateTime(ms) {
+      const date = new Date(ms);
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      const day = dayNames[date.getDay()];
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mi = String(date.getMinutes()).padStart(2, '0');
+      return `${yyyy}.${mm}.${dd} (${day}) ${hh}:${mi}`;
+    }
+
+    fetch('schedules.json')
+      .then(response => response.json())
+      .then(jsonData => {
+        const container = document.getElementById('button-container');
+        container.innerHTML = ''; // 초기 메시지 제거
+
+        jsonData.schedules.forEach(schedule => {
+          const dateText = formatDateTime(schedule.scheduleDate);
+          const dateParam = dateText.split(' ')[0]; // YYYY.MM.DD
+          const url = `https://www.ticketlink.co.kr/reserve/product/${schedule.productId}?productDate=${dateParam}&scheduleId=${schedule.scheduleId}`;
+
+          const card = document.createElement('div');
+          card.className = 'ticket-card';
+          card.innerHTML = `
+            <a href="${url}" target="_blank">
+              <div class="match-title">${schedule.homeTeam.teamName} vs ${schedule.awayTeam.teamName}</div>
+              <div class="match-info">${dateText} · ${schedule.venueName}</div>
+            </a>
+          `;
+
+          container.appendChild(card);
+        });
+      })
+      .catch(err => {
+        document.getElementById('button-container').textContent = '데이터를 불러오지 못했습니다.';
+        console.error('JSON 로딩 실패:', err);
+      });
+  </script>
+</body>
+</html>
