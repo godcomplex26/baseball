@@ -76,69 +76,73 @@
   <div id="button-container">불러오는 중...</div>
 
   <script>
-    function formatDateTime(ms) {
-      const date = new Date(ms);
-      const yyyy = date.getFullYear();
-      const mm = String(date.getMonth() + 1).padStart(2, '0');
-      const dd = String(date.getDate()).padStart(2, '0');
-      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-      const day = dayNames[date.getDay()];
-      const hh = String(date.getHours()).padStart(2, '0');
-      const mi = String(date.getMinutes()).padStart(2, '0');
-      return {
-        display: `${yyyy}.${mm}.${dd} (${day}) ${hh}:${mi}`,
-        param: `${yyyy}.${mm}.${dd}`
-      };
-    }
+  function isMobile() {
+    return /Mobi|Android|iPhone/i.test(navigator.userAgent);
+  }
 
-    fetch('schedules.json')
-      .then(res => res.json())
-      .then(jsonData => {
-        const schedules = jsonData.data?.schedules;
-        const container = document.getElementById('button-container');
-        container.innerHTML = '';
+  function formatDateTime(ms) {
+    const date = new Date(ms);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const day = dayNames[date.getDay()];
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    return {
+      display: `${yyyy}.${mm}.${dd} (${day}) ${hh}:${mi}`,
+      param: `${yyyy}.${mm}.${dd}`
+    };
+  }
 
-        if (!Array.isArray(schedules)) {
-          container.textContent = '스케줄 데이터를 찾을 수 없습니다.';
-          return;
-        }
+  fetch('schedules.json')
+    .then(res => res.json())
+    .then(jsonData => {
+      const schedules = jsonData.data?.schedules;
+      const container = document.getElementById('button-container');
+      container.innerHTML = '';
 
-        // 오늘 날짜의 00:00 기준 시간 생성
-        const todayMidnight = new Date();
-        todayMidnight.setHours(0, 0, 0, 0);
-        const todayTime = todayMidnight.getTime();
+      if (!Array.isArray(schedules)) {
+        container.textContent = '스케줄 데이터를 찾을 수 없습니다.';
+        return;
+      }
 
-        // 오늘 이후 경기만 필터링
-        const futureSchedules = schedules.filter(s => s.scheduleDate >= todayTime);
+      const todayTime = new Date().setHours(0, 0, 0, 0);
+      const futureSchedules = schedules.filter(s => s.scheduleDate >= todayTime);
 
-        if (futureSchedules.length === 0) {
-          container.textContent = '예정된 경기가 없습니다.';
-          return;
-        }
+      if (futureSchedules.length === 0) {
+        container.textContent = '예정된 경기가 없습니다.';
+        return;
+      }
 
-        futureSchedules.forEach(schedule => {
-          const { display, param } = formatDateTime(schedule.scheduleDate);
-          const url = `https://www.ticketlink.co.kr/reserve/product/${schedule.productId}?productDate=${param}&scheduleId=${schedule.scheduleId}`;
-          const card = document.createElement('div');
-          card.className = 'ticket-card';
+      const baseUrl = isMobile()
+        ? 'https://m.ticketlink.co.kr'
+        : 'https://www.ticketlink.co.kr';
 
-          card.innerHTML = `
-            <a href="${url}" target="_blank">
-              <div class="match-title">${schedule.homeTeam.teamName} vs ${schedule.awayTeam.teamName}</div>
-              <div class="match-info">
-                ${display}<br />
-                ${schedule.venueName.trim()}
-              </div>
-            </a>
-          `;
+      futureSchedules.forEach(schedule => {
+        const { display, param } = formatDateTime(schedule.scheduleDate);
+        const url = `${baseUrl}/reserve/product/${schedule.productId}?productDate=${param}&scheduleId=${schedule.scheduleId}`;
+        const card = document.createElement('div');
+        card.className = 'ticket-card';
 
-          container.appendChild(card);
-        });
-      })
-      .catch(err => {
-        document.getElementById('button-container').textContent = '데이터를 불러오지 못했습니다.';
-        console.error('JSON 로딩 실패:', err);
+        card.innerHTML = `
+          <a href="${url}" target="_blank">
+            <div class="match-title">${schedule.homeTeam.teamName} vs ${schedule.awayTeam.teamName}</div>
+            <div class="match-info">
+              ${display}<br />
+              ${schedule.venueName.trim()}
+            </div>
+          </a>
+        `;
+
+        container.appendChild(card);
       });
-  </script>
+    })
+    .catch(err => {
+      document.getElementById('button-container').textContent = '데이터를 불러오지 못했습니다.';
+      console.error('JSON 로딩 실패:', err);
+    });
+</script>
+
 </body>
 </html>
