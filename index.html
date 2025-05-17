@@ -120,8 +120,10 @@
         : 'https://www.ticketlink.co.kr';
 
       futureSchedules.forEach(schedule => {
-        const { display, param } = formatDateTime(schedule.scheduleDate);
-        const url = `${baseUrl}/reserve/product/${schedule.productId}?productDate=${param}&scheduleId=${schedule.scheduleId}`;
+        const gameTime = formatDateTime(schedule.scheduleDate);
+        const openTime = formatDateTime(schedule.reserveOpenDateTime);
+        const url = `${baseUrl}/reserve/product/${schedule.productId}?productDate=${gameTime.param}&scheduleId=${schedule.scheduleId}`;
+
         const card = document.createElement('div');
         card.className = 'ticket-card';
 
@@ -129,8 +131,9 @@
           <a href="${url}" target="_blank">
             <div class="match-title">${schedule.homeTeam.teamName} vs ${schedule.awayTeam.teamName}</div>
             <div class="match-info">
-              ${display}<br />
-              ${schedule.venueName.trim()}
+              ${gameTime.display}<br />
+              ${schedule.venueName.trim()}<br />
+              <strong>예매 오픈:</strong> ${openTime.display}
             </div>
           </a>
         `;
@@ -143,6 +146,7 @@
       console.error('JSON 로딩 실패:', err);
     });
 </script>
+
 
 </body>
 </html>
