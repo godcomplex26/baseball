@@ -58,6 +58,15 @@
       line-height: 1.5;
     }
 
+    .open-today {
+      color: #d80000;
+      font-weight: bold;
+    }
+    
+    .open-past {
+      color: #999;
+    }
+
     @media (max-width: 480px) {
       .match-title {
         font-size: 15px;
@@ -91,7 +100,8 @@
     const mi = String(date.getMinutes()).padStart(2, '0');
     return {
       display: `${yyyy}.${mm}.${dd} (${day}) ${hh}:${mi}`,
-      param: `${yyyy}.${mm}.${dd}`
+      param: `${yyyy}.${mm}.${dd}`,
+      yyyymmdd: `${yyyy}${mm}${dd}`
     };
   }
 
@@ -107,8 +117,11 @@
         return;
       }
 
-      const todayTime = new Date().setHours(0, 0, 0, 0);
-      const futureSchedules = schedules.filter(s => s.scheduleDate >= todayTime);
+      const today = new Date();
+      const todayMidnight = new Date(today.setHours(0, 0, 0, 0));
+      const todayYMD = formatDateTime(todayMidnight.getTime()).yyyymmdd;
+
+      const futureSchedules = schedules.filter(s => s.scheduleDate >= todayMidnight.getTime());
 
       if (futureSchedules.length === 0) {
         container.textContent = '예정된 경기가 없습니다.';
@@ -122,6 +135,15 @@
       futureSchedules.forEach(schedule => {
         const gameTime = formatDateTime(schedule.scheduleDate);
         const openTime = formatDateTime(schedule.reserveOpenDateTime);
+        const openYMD = openTime.yyyymmdd;
+
+        let openClass = '';
+        if (openYMD === todayYMD) {
+          openClass = 'open-today';
+        } else if (openYMD < todayYMD) {
+          openClass = 'open-past';
+        }
+
         const url = `${baseUrl}/reserve/product/${schedule.productId}?productDate=${gameTime.param}&scheduleId=${schedule.scheduleId}`;
 
         const card = document.createElement('div');
@@ -133,7 +155,7 @@
             <div class="match-info">
               ${gameTime.display}<br />
               ${schedule.venueName.trim()}<br />
-              <strong>예매 오픈:</strong> ${openTime.display}
+              <strong class="${openClass}">예매 오픈: ${openTime.display}</strong>
             </div>
           </a>
         `;
@@ -146,6 +168,7 @@
       console.error('JSON 로딩 실패:', err);
     });
 </script>
+
 
 
 </body>
