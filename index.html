@@ -108,49 +108,53 @@
   }
 
   fetch('schedules.json')
-    .then(res => res.json())
     .then(jsonData => {
       const schedules = jsonData.data?.schedules;
       const container = document.getElementById('button-container');
       container.innerHTML = '';
-
+    
       if (!Array.isArray(schedules)) {
         container.textContent = '스케줄 데이터를 찾을 수 없습니다.';
         return;
       }
-
+    
       const today = new Date();
       const todayMidnight = new Date(today.setHours(0, 0, 0, 0));
-      const todayYMD = formatDateTime(todayMidnight.getTime()).yyyymmdd;
-
-      const futureSchedules = schedules.filter(s => s.scheduleDate >= todayMidnight.getTime());
-
-      if (futureSchedules.length === 0) {
-        container.textContent = '예정된 경기가 없습니다.';
+      const todayTimestamp = todayMidnight.getTime();
+      const todayYMD = formatDateTime(todayTimestamp).yyyymmdd;
+    
+      const filteredSchedules = schedules.filter(s => {
+        const isFuture = s.scheduleDate >= todayTimestamp;
+        const isSamsungHome = s.homeTeam?.teamName?.includes('삼성');
+        return isFuture && isSamsungHome;
+      });
+    
+      if (filteredSchedules.length === 0) {
+        container.textContent = '예정된 삼성 홈경기가 없습니다.';
         return;
       }
-
+    
       const baseUrl = isMobile()
         ? 'https://m.ticketlink.co.kr'
         : 'https://www.ticketlink.co.kr';
-
-      futureSchedules.forEach(schedule => {
+    
+      filteredSchedules.forEach(schedule => {
         const gameTime = formatDateTime(schedule.scheduleDate);
         const openTime = formatDateTime(schedule.reserveOpenDateTime);
         const openYMD = openTime.yyyymmdd;
-
+    
         let openClass = '';
         if (openYMD === todayYMD) {
           openClass = 'open-today';
         } else if (openYMD < todayYMD) {
           openClass = 'open-past';
         }
-
+    
         const url = `${baseUrl}/reserve/product/${schedule.productId}?productDate=${gameTime.param}&scheduleId=${schedule.scheduleId}`;
-
+    
         const card = document.createElement('div');
         card.className = 'ticket-card';
-
+    
         card.innerHTML = `
           <a href="${url}" target="_blank">
             <div class="match-title">${schedule.homeTeam.teamName} vs ${schedule.awayTeam.teamName}</div>
@@ -161,7 +165,7 @@
             </div>
           </a>
         `;
-
+    
         container.appendChild(card);
       });
     })
